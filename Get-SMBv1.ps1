@@ -19,9 +19,18 @@ function Get-SMBv1
   param
   (
     [Parameter(Position = 0,ParameterSetName = 'Computers')]
-    [string[]]  $Computers = 'localhost',
+    [string[]]$Computers = 'localhost',
     [Parameter(Mandatory,HelpMessage = 'Add a file name and path from a text file', Position = 0,ParameterSetName = 'ComputerFile')]
-    [String]$ComputerFile
+    [ValidateScript({
+          if($_ -match '.txt')
+          {
+            $true
+          }
+          else
+          {
+            Throw 'ComputerFile only supports .txt files'
+          }
+    })][String]$ComputerFile
   )
   
   $Results = @()
@@ -45,4 +54,5 @@ function Get-SMBv1
   $Results | Select-Object  -Property MachineName, SMBv1Enabled
 }
 
+Get-SMBv1 -ComputerFile 'C:\Users\New User\Desktop\Computers.txt'
 
