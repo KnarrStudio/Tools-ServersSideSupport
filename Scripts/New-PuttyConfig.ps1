@@ -43,8 +43,9 @@
     
   )
 
-  if($Template){
-    '"HostName","IPAddress"' | Out-file $File
+  if($Template)
+  {
+    '"HostName","IPAddress"' | Out-File $File
     return
   }
 
@@ -59,59 +60,49 @@
     'Custom' = $CustomColor
   }
 
-
-  switch($PSBoundParameters.Keys){
-    'ForegroundColor'
-    {
-      If('Default')
-      {
-        $Color0 = '255.255.255'
-      }
-      Else
-      {
-        $Color0 = $ColorSelection.$ForegroundColor
-      }
-    }
-    'BoldForegroundColor'
-    {
-      If('Default')
-      {
-        $Color0 = '255.255.255'
-      }
-      Else
-      {
-        $Color1 = $ColorSelection.$BoldForegroundColor
-      }
-    }
-    'BackgroundColor'
-    {
-      If('Default')
-      {
-        $Color0 = '0,0,0'
-      }
-      Else
-      {
-        $Color2 = $ColorSelection.$BackgroundColor
-      }
-    }
-    'BoldBackgroundColor'
-    {
-      If('Default')
-      {
-        $Color0 = '85,85,85'
-      }
-      Else
-      {
-        $Color3 = $ColorSelection.$BoldBackgroundColor
-      }
-    }
-  }
-
-  for($i = 0;$i -lt 4;$i++)
+  If($ForegroundColor -eq 'Default')
   {
-    Write-Host -Object $Color0
+    $Color0 = '255.255.255'
   }
-}
+  Else
+  {
+    $Color0 = $ColorSelection.$ForegroundColor
+  }
+      
+  If($BoldForegroundColor -eq 'Default')
+  {
+    $Color1 = '255.255.255'
+  }
+  Else
+  {
+    $Color1 = $ColorSelection.$BoldForegroundColor
+  }
 
-New-PuttyConfig -File C:\temp\template.csv -Template
+  If($BackgroundColor -eq 'Default')
+  {
+    $Color2 = '0,0,0'
+  }
+  Else
+  {
+    $Color2 = $ColorSelection.$BackgroundColor
+  }
 
+  If($BoldBackgroundColor -eq 'Default')
+  {
+    $Color3 = '85,85,85'
+  }
+  Else
+  {
+    $Color3 = $ColorSelection.$BoldBackgroundColor
+  }
+   
+
+
+    Write-Host $Color0
+    Write-Host $Color1
+    Write-Host $Color2
+    Write-Host $Color3
+    
+  }
+
+New-PuttyConfig -File C:\temp\template.csv 

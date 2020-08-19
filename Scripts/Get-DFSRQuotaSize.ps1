@@ -42,7 +42,8 @@ function Get-DFSRQuotaSize
   $DateNow = Get-Date -UFormat %Y%m%d-%S
   $LogFile = [String]$($LogFile.Replace('.',('_{0}.' -f $DateNow)))
 
-  $Big32 = Get-ChildItem -Path $FullPath -Recurse |
+  $TotalFiles = Get-ChildItem -Path $FullPath -Recurse
+  $Big32 = $TotalFiles |
   Sort-Object -Property length -Descending |
   Select-Object -First 32 |
   Measure-Object -Property length -Sum
@@ -69,17 +70,16 @@ function Get-DFSRQuotaSize
 
   
   ('The path tested: {0}.' -f $FullPath) | Tee-Object  -FilePath $LogFile
+  ('Of the {0} tested, the 32 largest have a total size of {1:n2}.' -f $($TotalFiles.Length, $($Big32.Sum))) | Tee-Object  -FilePath $LogFile -Append
+  ('Math: ({1:n2} / 1GB) = {0:n4}{2}' -f $DfsrQuota, $($Big32.Sum), $NewLine) | Tee-Object -FilePath $LogFile -Append
   
   $OutputInformation | Tee-Object  -FilePath $LogFile -Append
-  
-  ('Raw Quota = {0:n4}' -f $DfsrQuota) | Tee-Object -FilePath $LogFile -Append
-  
+    
   Write-Output -InputObject ('The log can be found: {0}{1}' -f  $LogFile, $NewLine)
 }
 
 
 Get-DFSRQuotaSize -FullPath "$env:HOMEDRIVE\Temp"
-
 
 
 
