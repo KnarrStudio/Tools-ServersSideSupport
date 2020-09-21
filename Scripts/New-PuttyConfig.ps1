@@ -12,7 +12,7 @@
           }
           Else
           {
-            Throw 'Input file needs to be CSV formatted with "HostName" & "IPAddress"'
+            Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress"'
           }
     })][String]$File,
     [Parameter(Mandatory = $false, Position = 1,ParameterSetName = 'Default')]
@@ -105,4 +105,4 @@
     
   }
 
-New-PuttyConfig -File C:\temp\template.csv 
+New-PuttyConfig -File C:\temp\template.csv -ForegroundColor Blue

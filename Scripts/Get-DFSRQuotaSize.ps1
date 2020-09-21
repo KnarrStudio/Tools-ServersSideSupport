@@ -70,8 +70,8 @@ function Get-DFSRQuotaSize
 
   
   ('The path tested: {0}.' -f $FullPath) | Tee-Object  -FilePath $LogFile
-  ('Of the {0} tested, the 32 largest have a total size of {1:n2}.' -f $($TotalFiles.Length, $($Big32.Sum))) | Tee-Object  -FilePath $LogFile -Append
-  ('Math: ({1:n2} / 1GB) = {0:n4}{2}' -f $DfsrQuota, $($Big32.Sum), $NewLine) | Tee-Object -FilePath $LogFile -Append
+  ('Of the {0} files reviewed, the 32 largest have a total size of {1:n2}.' -f $($TotalFiles.Length, $($Big32.Sum))) | Tee-Object  -FilePath $LogFile -Append
+  ('Math: ({1:n2} / 1GB) = {0:n4}{2}GB' -f $DfsrQuota, $($Big32.Sum), $NewLine) | Tee-Object -FilePath $LogFile -Append
   
   $OutputInformation | Tee-Object  -FilePath $LogFile -Append
     
