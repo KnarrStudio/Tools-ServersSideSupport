@@ -1,15 +1,17 @@
-﻿$RgbColor = @{
-    'Black' = '0,0,0'
-    'Blue' = '0,0,255'
-    'Green' = '0,255,0'
-    'Red'  = '255,0,0'
-    'Yellow' = '255,255,0'
-    'Gray' = '85,85,85'
-    'White' = '255,255,255'
-}
- 
+﻿ 
 $InputFile = ('{0}\temp\Putty\Input.csv' -f $env:HOMEDRIVE)
+$ItemCount = 100
+$ThemeSelection = $null
 
+$RgbColor = @{
+  'Black' = '0,0,0'
+  'Blue' = '0,0,255'
+  'Green' = '0,255,0'
+  'Red'  = '255,0,0'
+  'Yellow' = '255,255,0'
+  'Gray' = '85,85,85'
+  'White' = '255,255,255'
+}
 
 $ThemeHash = @{
   Saroja  = @{
@@ -48,7 +50,6 @@ $MenuItems = ($ThemeHash.GetEnumerator() | ForEach-Object -Process {
     $_.Key
 })
 
-
 $MenuSplat = @{
   Title     = 'Putty Theme and Reg File Builder'
   MenuItems = $MenuItems
@@ -57,9 +58,7 @@ $MenuSplat = @{
 $PuttyConfigSplat = @{
 }
 
-$ItemCount = 100
-function Show-AsciiMenu 
-{
+function Show-AsciiMenu {
   <#
       .SYNOPSIS
       Describe purpose of "Show-AsciiMenu" in 1-2 sentences.
@@ -226,8 +225,7 @@ function Show-AsciiMenu
   }
 }
 
-function New-PuttyConfig 
-{
+function New-PuttyConfig {
   [cmdletbinding(DefaultParameterSetName = 'Default')]
   param
   (
@@ -263,14 +261,12 @@ function New-PuttyConfig
   }
 }
 
-$ThemeSelection = $null
+
 Show-AsciiMenu @MenuSplat
-Do 
-{
+Do {
   $ThemeSelection = Read-Host -Prompt 'Select Number'
   [String]$PuttyThemeSelection = $MenuItems[$ThemeSelection-1]
-}
-Until($ThemeSelection -le $ItemCount)
+} Until($ThemeSelection -le $ItemCount)
 
 
 
@@ -286,10 +282,10 @@ $CurserColorRGB
 
 
 $NewPuttyConfigSplat = @{
-  File = $InputFile
-  TxtColor = $TextColorRGB 
-  BkColor = $BackgroundColorRGB 
-  CurserColor = $CurserColorRGB 
+  File        = $InputFile
+  TxtColor    = $TextColorRGB
+  BkColor     = $BackgroundColorRGB
+  CurserColor = $CurserColorRGB
 }
 
 New-PuttyConfig @NewPuttyConfigSplat
