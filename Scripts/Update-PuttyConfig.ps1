@@ -1,52 +1,46 @@
-﻿<#
+﻿$RgbColor = @{
     'Black' = '0,0,0'
     'Blue' = '0,0,255'
-    'Green' = '0,128,0'
+    'Green' = '0,255,0'
     'Red'  = '255,0,0'
     'Yellow' = '255,255,0'
     'Gray' = '85,85,85'
     'White' = '255,255,255'
-    'Custom' = $CustomColor
-#>
+}
  
+$InputFile = ('{0}\temp\Putty\Input.csv' -f $env:HOMEDRIVE)
 
 
 $ThemeHash = @{
-  Saroja   = @{
+  Saroja  = @{
     TxtColor       = '0,255,255'
     BkColor        = '255,0,255'
     CrsrColor      = '255,0,0'
     ThemeSelection = 'Saroja'
   }
-  Lonnie   = @{
+  Lonnie  = @{
     TxtColor       = '0,255,255'
     BkColor        = '255,0,255-lonnie'
     CrsrColor      = '255,0,0'
     ThemeSelection = 'Lonnie'
   }
-  Default  = @{
-    TxtColor       = '0,255,255'
-    BkColor        = '255,0,255'
-    CrsrColor      = '255,0,0'
+  Default = @{
+    TxtColor       = $RgbColor.Gray
+    BkColor        = $RgbColor.Black
+    CrsrColor      = $RgbColor.Gray
     ThemeSelection = 'Default'
   }
-  SIPR     = @{
-    TxtColor       = '0,255,255'
-    BkColor        = '255,0,255-sipr'
-    CrsrColor      = '255,0,0'
+  SIPR    = @{
+    TxtColor       = $RgbColor.Gray
+    BkColor        = $RgbColor.Black
+    CrsrColor      = $RgbColor.Red
     ThemeSelection = 'SIPR'
   }
-  NIPR     = @{
-    TxtColor       = '0,255,255'
-    BkColor        = '255,0,255-nipr'
-    CrsrColor      = '0,255,0'
+  NIPR    = @{
+    TxtColor       = $RgbColor.Gray
+    BkColor        = $RgbColor.Black
+    CrsrColor      = $RgbColor.Green
     ThemeSelection = 'NIPR'
-  }
-  Default3 = @{
-    TxtColor       = '0,255,255'
-    BkColor        = '255,0,255-3'
-    CrsrColor      = '255,0,0'
-    ThemeSelection = 'Default'
   }
 }
 
@@ -269,19 +263,18 @@ function New-PuttyConfig
   }
 }
 
+$ThemeSelection = $null
+Show-AsciiMenu @MenuSplat
 Do 
 {
-  #Show-AsciiMenu -Title 'Putty Reg File Builder' -MenuItems 'Saroja Theme', 'Lonnie Theme', 'Default Theme' #-Debug
-  Show-AsciiMenu @MenuSplat
   $ThemeSelection = Read-Host -Prompt 'Select Number'
   [String]$PuttyThemeSelection = $MenuItems[$ThemeSelection-1]
 }
 Until($ThemeSelection -le $ItemCount)
 
-Write-Host ('Theme Selected: {0}' -f $PuttyThemeSelection)
 
-     
- 
+
+Write-Host ('Theme Selected: {0}' -f $PuttyThemeSelection)
 
 $TextColorRGB = $ThemeHash.$PuttyThemeSelection.TxtColor
 $BackgroundColorRGB = $ThemeHash.$PuttyThemeSelection.BkColor
@@ -291,20 +284,30 @@ $BackgroundColorRGB
 $CurserColorRGB 
 
 
-New-PuttyConfig -File $env:HOMEDRIVE\temp\Putty\Input.csv -TxtColor $TextColorRGB -BkColor $BackgroundColorRGB -CurserColor $CurserColorRGB 
 
-$Activities = @('x', 'Building Theme', 'Varifing Theme', 'Importing File', 'Parsing Information', 'Merging Data', 'Building Config', 'Saving File' )
-$ActivityCount = $Activities.Count
+$NewPuttyConfigSplat = @{
+  File = $InputFile
+  TxtColor = $TextColorRGB 
+  BkColor = $BackgroundColorRGB 
+  CurserColor = $CurserColorRGB 
+}
+
+New-PuttyConfig @NewPuttyConfigSplat
 
 
-for ($i = 1; $i -lt $ActivityCount; $i++)
-{
-  $ActivityProgress = @{
-    Activity        = $Activities[$i]
-    PercentComplete = (($i*100)/$ActivityCount)
-    Status          = "$(([math]::Round((($i)/$ActivityCount * 100),0))) %"
+
+$WriteProgress = {
+  $Activities = @('x', 'Building Theme', 'Varifing Theme', 'Importing File', 'Parsing Information', 'Merging Data', 'Building Config', 'Saving File' )
+  $ActivityCount = $Activities.Count
+  for ($i = 1; $i -lt $ActivityCount; $i++)
+  {
+    $ActivityProgress = @{
+      Activity        = $Activities[$i]
+      PercentComplete = (($i*100)/$ActivityCount)
+      Status          = ('{0} %' -f (([math]::Round((($i)/$ActivityCount * 100),0))))
+    }
+    Write-Progress @ActivityProgress
+    Start-Sleep -Milliseconds 300
   }
-  Write-Progress @ActivityProgress
-  Start-Sleep -Milliseconds 250
 }
        
