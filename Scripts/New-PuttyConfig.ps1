@@ -98,11 +98,10 @@
    
 
 
-    Write-Host $Color0
-    Write-Host $Color1
-    Write-Host $Color2
-    Write-Host $Color3
-    
-  }
+  Write-Host -Object $Color0
+  Write-Host -Object $Color1
+  Write-Host -Object $Color2
+  Write-Host -Object $Color3
+}
 
 New-PuttyConfig -File C:\temp\template.csv -ForegroundColor Blue
