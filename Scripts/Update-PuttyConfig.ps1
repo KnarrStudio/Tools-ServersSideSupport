@@ -1,5 +1,6 @@
 ﻿ 
 $InputFile = ('{0}\temp\Putty\Input.csv' -f $env:HOMEDRIVE)
+$PuttyLogFile = ('{0}\temp\Putty\PuttyLog-{1}' -f $env:HOMEDRIVE,$(Get-date -f %A))
 $ItemCount = 100
 $ThemeSelection = $null
 
