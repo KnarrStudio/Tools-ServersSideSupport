@@ -18,7 +18,7 @@ function Get-SMBv1
   [cmdletbinding(DefaultParameterSetName = 'Computers',SupportsPaging = $true)]
   param
   (
-    [Parameter(Position = 0,ParameterSetName = 'Computers')]
+    [Parameter(Position = 0,ParameterSetName = 'Computers',ValueFromPipeline)]
     [string[]]$Computers = 'localhost',
     [Parameter(Mandatory,HelpMessage = 'Add a file name and path from a text file', Position = 0,ParameterSetName = 'ComputerFile')]
     [ValidateScript({
@@ -54,5 +54,5 @@ function Get-SMBv1
   $Results | Select-Object  -Property MachineName, SMBv1Enabled
 }
 
-Get-SMBv1 -ComputerFile 'C:\Users\New User\Desktop\Computers.txt'
+Get-SMBv1 -ComputerFile "$env:HOMEDRIVE\Users\NewUser\Desktop\Computers.txt"
 

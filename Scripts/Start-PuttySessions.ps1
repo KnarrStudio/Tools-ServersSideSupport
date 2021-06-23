@@ -1,28 +1,34 @@
-﻿function Start-PuttySessions
+﻿#requires -Version 3.0
+function Start-PuttySessions
 {
   <#
-    .SYNOPSIS
-    Short Description
-    .DESCRIPTION
-    Detailed Description
-    .EXAMPLE
-    Start-Something
-    explains how to use the command
-    can be multiple lines
-    .EXAMPLE
-    Start-Something
-    another example
-    can have as many examples as you like
+      .SYNOPSIS
+      Allows you to open a putty session via Powershell
+
+      .DESCRIPTION
+      Reads the registry for the available sessions and then presents them to you in a grid that you can select and open
+    
+      .PARAMETER LoginName
+      If you have a bunch of switches, you can use this to populate the "login" field.
+
+      .PARAMETER PuttyPath
+      Full path to the location of the PuTTY.exe
+
+      .EXAMPLE
+      Start-PuttySessions -LoginName StanSmith -PuttyPath 'c:\Putty\putty.exe'
+      This will open a grid view with all of your putty sessions displayed.  When you start them the username will be populated.
+
   #>
+
   [CmdletBinding()]
   param
   (
-    [Parameter(Mandatory=$false, Position=0)]
-    [System.String]
+    [Parameter(Position = 0)]
+    [string]
     $LoginName = 'pi',
-    [Parameter(Mandatory=$false, Position=1)]
-    [System.String]
-    $PuttyPath = 'C:\Users\New User\OneDrive\Downloads\putty.exe'
+    [Parameter(Position = 1)]
+    [string]
+    $PuttyPath = 'C:\Users\NewUser\OneDrive\Downloads\putty.exe'
   )
   $PuTTYSessions = Get-ItemProperty -Path HKCU:\Software\Simontatham\PuTTY\Sessions\*
   function Start-PuttySession
@@ -30,7 +36,7 @@
     param
     (
       [Object]
-      [Parameter(Mandatory=$true, ValueFromPipeline=$true, HelpMessage="Data to process")]
+      [Parameter(Mandatory, ValueFromPipeline, HelpMessage = 'Data to process')]
       $InputObject
     )
     process
