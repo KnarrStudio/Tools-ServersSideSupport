@@ -1,6 +1,6 @@
 ﻿function Import-PuTTYSessions 
 {
-[cmdletbinding(DefaultParameterSetName = 'Default')]
+  [cmdletbinding(DefaultParameterSetName = 'Default')]
   param
   (
     [Parameter(Mandatory, Position = 0,ParameterSetName = 'Default')]
@@ -8,12 +8,12 @@
     [ValidateScript({
           If($_ -match '.csv')
           {
-$true
-}
+            $true
+          }
           Else
           {
-Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress"'
-}
+            Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress"'
+          }
     })][String]$File,
     [Parameter(Mandatory = $false, Position = 1,ParameterSetName = 'Default')]
     [string]$PuttyTheme = 'Default',
@@ -26,19 +26,18 @@ Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress"'
 "HostName","IPAddress"
 "Switch-42","192.168.0.42"
 '@
-$FileTemplate | Out-File -FilePath $File -Force
+    $FileTemplate | Out-File -FilePath $File -Force
     return
   }
 }
 function Export-PuTTYSessions 
 {
-  [CmdletBinding()]
   param
   (
     [Parameter(Mandatory = $false,Position = 0)]
     [string]
     $SessionName = '*',
-    $outputPath = 'c:\temp\Putty\',
+    [string]$outputPath = "$env:HOMEDRIVE\temp\Putty\",
     [Switch]$Bundle
   )
   function New-RegistryFile
@@ -47,22 +46,22 @@ function Export-PuTTYSessions
         .SYNOPSIS
         Creates new file
     #>
-    [CmdletBinding()]
     param
     (
       [Parameter(Mandatory = $true, Position = 0)]
       [String]$FileName,
+      [Parameter(Mandatory=$true)]
       [String]$outputPath 
     )
     $FileRegHeader = 'Windows Registry Editor Version 5.00'  
-    if(Test-path $outputPath){ 
+    if(Test-path -Path $outputPath){ 
       $outputfile = $('{0}\{1}.reg' -f $outputPath, $FileName)
     }
-    if(Test-Path $outputfile)
+    if(Test-Path -Path $outputfile)
     {
       $outputfile = $outputfile.Replace('.reg',('({0}).reg' -f (Get-Date -Format yyMMdd)))
     }
-    $FileRegHeader | Out-File $outputfile -Force
+    $FileRegHeader | Out-File -FilePath $outputfile -Force
     Return $outputfile
   }
   function Export-SessionToFile
@@ -71,7 +70,6 @@ function Export-PuTTYSessions
         .SYNOPSIS
         Export Reg Session to file
     #>
-    [CmdletBinding()]
     param
     (
       [Parameter(Mandatory = $true, Position = 0, HelpMessage = 'Please add a help message here')]
@@ -79,8 +77,8 @@ function Export-PuTTYSessions
       [Parameter(Mandatory = $true, Position = 1, HelpMessage = 'Please add a help message here')]
       [String]$item
     )
-    ('[{0}]' -f $item) | Out-File $outputfile -Append  # Output session header to file
-    Get-ItemProperty -Path ('HKCU:{0}' -f $($item.TrimStart('HKEY_CURRENT_USER'))) | Out-File $outputfile  -Append
+    ('[{0}]' -f $item) | Out-File -FilePath $outputfile -Append  # Output session header to file
+    Get-ItemProperty -Path ('HKCU:{0}' -f $($item.TrimStart('HKEY_CURRENT_USER'))) | Out-File -FilePath $outputfile  -Append
   }
   $PuttyRegPath = 'HKCU:\Software\Simontatham\PuTTY\Sessions\'
   $PuTTYSessions = ((Get-Item -Path ('{0}{1}' -f $PuttyRegPath, $SessionName)).Name)
@@ -104,9 +102,61 @@ function Export-PuTTYSessions
 }
 function Update-PuTTYSessions 
 {
+  <#
+      .SYNOPSIS
+      Describe purpose of "Update-PuTTYSessions" in 1-2 sentences.
+
+      .DESCRIPTION
+      Add a more complete description of what the function does.
+
+      .EXAMPLE
+      Update-PuTTYSessions
+      Describe what this call does
+
+      .NOTES
+      Place additional notes here.
+
+      .LINK
+      URLs to related sites
+      The first link is opened by Get-Help -Online Update-PuTTYSessions
+
+      .INPUTS
+      List of input types that are accepted by this function.
+
+      .OUTPUTS
+      List of output types produced by this function.
+  #>
+
+
 }
 function Set-PuTTYTheme 
 {
+  <#
+      .SYNOPSIS
+      Describe purpose of "Set-PuTTYTheme" in 1-2 sentences.
+
+      .DESCRIPTION
+      Add a more complete description of what the function does.
+
+      .EXAMPLE
+      Set-PuTTYTheme
+      Describe what this call does
+
+      .NOTES
+      Place additional notes here.
+
+      .LINK
+      URLs to related sites
+      The first link is opened by Get-Help -Online Set-PuTTYTheme
+
+      .INPUTS
+      List of input types that are accepted by this function.
+
+      .OUTPUTS
+      List of output types produced by this function.
+  #>
+
+
 }
 function Connect-PuTTYSession 
 {
@@ -128,19 +178,19 @@ function Connect-PuTTYSession
       This will open a grid view with all of your putty sessions displayed.  When you start them the username will be populated.
 
   #>
-  [CmdletBinding()]
   param
   (
     [Parameter(Position = 0)]
-    [string]
-    $LoginName = 'pi',
+    [string]$LoginName,
     [Parameter(Position = 1)]
-    [string]
-    $PuttyPath = 'putty.exe'
+    [string]$PuttyPath = 'putty.exe'
   )
   $PuTTYSessions = Get-ItemProperty -Path HKCU:\Software\Simontatham\PuTTY\Sessions\*
   function Start-PuttySession
-  {
+  {<#
+      .SYNOPSIS
+      Starts the actual puTTY session
+      #>
     param
     (
       [Object]
