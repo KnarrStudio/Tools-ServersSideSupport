@@ -54,5 +54,5 @@ function Get-SMBv1
   $Results | Select-Object  -Property MachineName, SMBv1Enabled
 }
 
-Get-SMBv1 -ComputerFile "$env:HOMEDRIVE\Users\NewUser\Desktop\Computers.txt"
+Get-SMBv1 #-ComputerFile "$env:HOMEDRIVE\Users\NewUser\Desktop\Computers.txt"
 
