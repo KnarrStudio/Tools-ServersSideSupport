@@ -19,22 +19,17 @@ Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress"'
     [string]$PuttyTheme = 'Default',
     [Parameter(Mandatory = $false, Position = 1,ParameterSetName = 'Template')]
     [Switch]$CreateTemplate
-    
   )
-
   if($CreateTemplate)
   {
     $FileTemplate = @'
 "HostName","IPAddress"
 "Switch-42","192.168.0.42"
 '@
-
-
 $FileTemplate | Out-File -FilePath $File -Force
     return
   }
 }
-
 function Export-PuTTYSessions 
 {
   [CmdletBinding()]
@@ -44,17 +39,14 @@ function Export-PuTTYSessions
     [string]
     $SessionName = '*',
     $outputPath = 'c:\temp\Putty\',
-
     [Switch]$Bundle
   )
-
   function New-RegistryFile
   {
     <#
         .SYNOPSIS
         Creates new file
     #>
-      
     [CmdletBinding()]
     param
     (
@@ -64,16 +56,13 @@ function Export-PuTTYSessions
     )
     $FileRegHeader = 'Windows Registry Editor Version 5.00'  
     if(Test-path $outputPath){ 
-    
       $outputfile = $('{0}\{1}.reg' -f $outputPath, $FileName)
     }
-  
     if(Test-Path $outputfile)
     {
       $outputfile = $outputfile.Replace('.reg',('({0}).reg' -f (Get-Date -Format yyMMdd)))
     }
     $FileRegHeader | Out-File $outputfile -Force
-    
     Return $outputfile
   }
   function Export-SessionToFile
@@ -82,25 +71,19 @@ function Export-PuTTYSessions
         .SYNOPSIS
         Export Reg Session to file
     #>
-  
     [CmdletBinding()]
     param
     (
       [Parameter(Mandatory = $true, Position = 0, HelpMessage = 'Please add a help message here')]
       [String]$outputfile ,
-    
       [Parameter(Mandatory = $true, Position = 1, HelpMessage = 'Please add a help message here')]
       [String]$item
     )
-    
     ('[{0}]' -f $item) | Out-File $outputfile -Append  # Output session header to file
- 
     Get-ItemProperty -Path ('HKCU:{0}' -f $($item.TrimStart('HKEY_CURRENT_USER'))) | Out-File $outputfile  -Append
   }
-
   $PuttyRegPath = 'HKCU:\Software\Simontatham\PuTTY\Sessions\'
   $PuTTYSessions = ((Get-Item -Path ('{0}{1}' -f $PuttyRegPath, $SessionName)).Name)
-
   if(-not $Bundle)
   {
     foreach($item in $PuTTYSessions)
@@ -119,17 +102,12 @@ function Export-PuTTYSessions
     }
   }
 }
-
 function Update-PuTTYSessions 
 {
-
 }
-
 function Set-PuTTYTheme 
 {
-
 }
-
 function Connect-PuTTYSession 
 {
   <#
@@ -150,7 +128,6 @@ function Connect-PuTTYSession
       This will open a grid view with all of your putty sessions displayed.  When you start them the username will be populated.
 
   #>
-
   [CmdletBinding()]
   param
   (
@@ -180,9 +157,3 @@ function Connect-PuTTYSession
   Out-GridView -PassThru
   $MySession | Start-PuttySession
 }
-
-
-
-
-
-
