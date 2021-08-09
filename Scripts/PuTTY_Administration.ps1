@@ -1,5 +1,51 @@
 ﻿function Import-PuTTYSessions 
 {
+  <#
+      .SYNOPSIS
+      A simple way to import the switches or devices into PuTTY for the first time or update the current list.
+
+      .DESCRIPTION
+      Reads a CSV file with "Hostname","IPAddress" columns and builds PuTTY "Sessions" which are added to the registry of the current user.  
+      Adds to the registry 'HKCU:\Software\Simontatham\PuTTY\Sessions\'   
+      From this point you can use PuTTY as normal
+
+      .PARAMETER File
+      The CSV formatted file with the hostnames and IPs. (Hint: See the 'CreateTemplate' switch)
+
+      .PARAMETER PuttyTheme
+      Allows you to customize your PuTTY session colors.  Makes all of them the same, so you don't have to change them one by one.
+      (To be moved to Set-PuTTYTheme)
+
+      .PARAMETER CreateTemplate
+      This will create the file template for you.  
+      To ensure that you build the CSV file correctly.  
+      Then you can edit it
+
+      .EXAMPLE
+      Import-PuTTYSessions -File Value.csv
+      Standard import of sessions.  The first thing to run when you arrive at your new computer.
+
+      .EXAMPLE
+      Import-PuTTYSessions -File Value.csv -CreateTemplate
+      Will write an example into "value.csv"
+    
+
+      .NOTES
+      Often the only module you will need to get your PuTTY operational in your environment.
+
+      .LINK
+      URLs to related sites
+      The first link is opened by Get-Help -Online Import-PuTTYSessions
+
+      .INPUTS
+      .csv file with hostname and IP address.
+
+      .OUTPUTS
+      Registry keys based on the data in the csv file.
+      Note: There is no error checking, so Hostname "P@55Word" IP "999.123.000.333" will populate the registry, but obviously not work when called.
+  #>
+
+
   [cmdletbinding(DefaultParameterSetName = 'Default')]
   param
   (
@@ -30,6 +76,7 @@
     return
   }
 }
+
 function Export-PuTTYSessions 
 {
   param
@@ -40,7 +87,7 @@ function Export-PuTTYSessions
     [string]$outputPath = "$env:HOMEDRIVE\temp\Putty\",
     [Switch]$Bundle
   )
-  function New-RegistryFile
+  function script:New_RegistryFile
   {
     <#
         .SYNOPSIS
@@ -64,7 +111,7 @@ function Export-PuTTYSessions
     $FileRegHeader | Out-File -FilePath $outputfile -Force
     Return $outputfile
   }
-  function Export-SessionToFile
+  function script:Export_SessionToFile
   {
     <#
         .SYNOPSIS
@@ -86,20 +133,21 @@ function Export-PuTTYSessions
   {
     foreach($item in $PuTTYSessions)
     {
-      $itemName = $item.Split('\')[5]
-      Export-SessionToFile -outputfile $(New-RegistryFile  -FileName $itemName -outputPath $outputPath ) -item $item
+      $itemName = Split-Path -Path $item -Leaf
+      Export_SessionToFile -outputfile $(New_RegistryFile  -FileName $itemName -outputPath $outputPath ) -item $item
     }
   }
   else
   {
-    $outputfile = New-RegistryFile -FileName 'PuttyBundle' -outputPath $outputPath 
+    $outputfile = New_RegistryFile -FileName 'PuttyBundle' -outputPath $outputPath 
     foreach($item in $PuTTYSessions)
     {
-      $itemName = $item.Split('\')[5]
-      Export-SessionToFile -outputfile $outputfile -item $item
+      $itemName = Split-Path -Path $item -Leaf
+      Export_SessionToFile -outputfile $outputfile -item $item
     }
   }
 }
+
 function Update-PuTTYSessions 
 {
   <#
@@ -129,6 +177,7 @@ function Update-PuTTYSessions
 
 
 }
+
 function Set-PuTTYTheme 
 {
   <#
@@ -189,8 +238,8 @@ function Connect-PuTTYSession
   $PuTTYSessions = Get-ItemProperty -Path HKCU:\Software\Simontatham\PuTTY\Sessions\*
   function Start-PuttySession
   {<#
-      .SYNOPSIS
-      Starts the actual puTTY session
+        .SYNOPSIS
+        Starts the actual puTTY session
       #>
     param
     (
