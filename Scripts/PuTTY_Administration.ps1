@@ -77,7 +77,7 @@
   }
 }
 
-function Export-PuTTYSessions 
+function Export-PuTTYSessions #Completed
 {
   param
   (
@@ -97,11 +97,12 @@ function Export-PuTTYSessions
     (
       [Parameter(Mandatory = $true, Position = 0)]
       [String]$FileName,
-      [Parameter(Mandatory=$true)]
+      [Parameter(Mandatory = $true)]
       [String]$outputPath 
     )
     $FileRegHeader = 'Windows Registry Editor Version 5.00'  
-    if(Test-path -Path $outputPath){ 
+    if(Test-Path -Path $outputPath)
+    {
       $outputfile = $('{0}\{1}.reg' -f $outputPath, $FileName)
     }
     if(Test-Path -Path $outputfile)
@@ -119,9 +120,9 @@ function Export-PuTTYSessions
     #>
     param
     (
-      [Parameter(Mandatory = $true, Position = 0, HelpMessage = 'Please add a help message here')]
+      [Parameter(Mandatory = $true, Position = 0)]
       [String]$outputfile ,
-      [Parameter(Mandatory = $true, Position = 1, HelpMessage = 'Please add a help message here')]
+      [Parameter(Mandatory = $true, Position = 1)]
       [String]$item
     )
     ('[{0}]' -f $item) | Out-File -FilePath $outputfile -Append  # Output session header to file
@@ -208,7 +209,7 @@ function Set-PuTTYTheme
 
 }
 
-function Connect-PuTTYSession 
+function Connect-PuTTYSession #Completed
 {
   <#
       .SYNOPSIS
