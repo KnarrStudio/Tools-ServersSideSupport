@@ -1,4 +1,7 @@
-﻿#requires -Version 3.0
+﻿return  # This has been migrated to Putty_Administration under connect-puttysession
+
+
+#requires -Version 3.0
 function Start-PuttySessions
 {
   <#
