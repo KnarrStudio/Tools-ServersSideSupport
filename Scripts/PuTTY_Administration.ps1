@@ -58,7 +58,7 @@
           }
           Else
           {
-            Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress"'
+            Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress".  Use -CreateTemplate switch to build a template file.'
           }
     })][String]$File,
     [Parameter(Mandatory = $false, Position = 1,ParameterSetName = 'Default')]
