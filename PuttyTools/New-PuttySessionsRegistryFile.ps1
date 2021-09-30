@@ -1,97 +1,122 @@
 ﻿function New-PuttySessionsRegistryFile
 {
-  <#
-      .SYNOPSIS
-      Short Description
-      .DESCRIPTION
-      Detailed Description
-      .EXAMPLE
-      Add-PuttySessions
-      explains how to use the command
-      can be multiple lines
-      .EXAMPLE
-      Add-PuttySessions
-      another example
-      can have as many examples as you like
+<#
+    .SYNOPSIS
+    Creates a registry file with the default PuTTy settings that can be merged and transported
+
+    .DESCRIPTION
+    Creates a registry file with the default PuTTy settings that can be merged and transported.
+    Requires an import file as a csv and an output location.  
+    If you don't know how to format the input file use the "CreateTemplate" switch to build out a template file to edit.
+
+
+    .PARAMETER InputFileName
+    This is the csv file that contains the Session Titles (Often hostname) and IP addresses of the putty sessions you want to import
+
+    .PARAMETER OutputFolder
+    Where you want the output file to be saved
+
+    .PARAMETER CreateTemplate
+    Used to create an example csv inputfile 
+
+    .EXAMPLE
+    New-PuttySessionsRegistryFile -InputFileName Value -OutputFolder Value
+    Will create an MS registry file (.reg) based on the inputfilename and save it in the outputfolder
+
+    .EXAMPLE
+    New-PuttySessionsRegistryFile -CreateTemplate -OutputFolder Value
+    Creates a sample/example input file and saves it as "InputFileExample.csv" in the outputfolder
+
+    .NOTES
+    None at this time.
+
+    .LINK
+    None
+
+    .INPUTS
+    A CSV file with hostname and IP address
+
+    .OUTPUTS
+    Either a registry (.reg) file or a comma separated value (.csv) file
   #>
-  [CmdletBinding()]
+  [cmdletbinding(DefaultParameterSetName = 'Default')]
   param
   (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [Object]
-    $InputFileName = (Import-Csv -Path 'D:\GitHub\OgJAkFy8\PS-OldJakeRepository\PuttyConfigReg\Input.csv'),
-    
-    [Parameter(Mandatory = $false, Position = 1)]
-    [System.String]
-    $PuttyRegBase = 'D:\GitHub\OgJAkFy8\PS-OldJakeRepository\PuttyConfigReg\PuTTYRegHeader',
-    
-    [Parameter(Mandatory = $false, Position = 2)]
-    [Object]
-    $OutputFolder = (Get-Location).path
-    
+    [Parameter(Mandatory, HelpMessage = 'Import file in CSV format. See the "CreateTemplate" switch ', Position = 0,ParameterSetName = 'Default')]
+    [ValidateScript({
+          If($_ -match '.csv')
+          {
+            $true
+          }
+          Else
+          {
+            Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress".  Use -CreateTemplate switch to build a template file.'
+          }
+    })][String]$InputFileName,
+    [Parameter(Position = 1,ParameterSetName = 'Default')]
+    [Parameter(Mandatory, HelpMessage = 'Location to put the example file', Position = 1,ParameterSetName = 'Template')]
+    [String]$OutputFolder = (Get-Location).path,
+    [Parameter(ParameterSetName = 'Template')]
+    [Switch]$CreateTemplate
   )
-
-  $RegFile = ('PuttySessions-{0}-({1}).reg' -f $env:USERNAME, $(Get-Date -Format yyMMdd))
-  #$RegFile = (New-Item -Path ('{2}\PuttySessions -{0}- ({1}).reg' -f $env:USERNAME, $(Get-Date -UFormat %j%S), "$env:userprofile\Desktop") -ItemType File -Force)
-    
+  
+  $OutputFileName = ('PuttySessions-{0}_{1}.reg' -f $env:USERNAME, $(Get-Date -UFormat %j))#%H%M%S))
+  #$RegFile = (New-Item -Path ('{2}\PuttySessions -{0}- ({1}).reg' -f $env:USERNAME, $(Get-Date -UFormat %j%H%M%S), "$env:userprofile\Desktop") -ItemType File -Force)
+  if($CreateTemplate)
+  {
+    $FileTemplate = @'
+"HostName","IPAddress"
+"Switch-42","192.168.0.42"
+'@
+    $FileTemplate | Out-File -FilePath $('{0}\InputFileExample.csv' -f $OutputFolder) -Force
+    return
+  }
   function script:New_RegistryFile
   {
     <#
         .SYNOPSIS
         Creates new file
     #>
-    
     param
     (
-      [Parameter(Mandatory = $true, Position = 0)]
-      [String]$FileName = 'PuttySessions-erika-(210924)[26743].reg',
-      [Parameter(Mandatory = $true)]
-      [String]$outputPath = (Get-Location)
+      [Parameter(Mandatory, Position = 0)]
+      [String]$FileName ,
+      [Parameter(Mandatory)]
+      [String]$outputPath
     )
-    
-    $FileRegHeader = 'Windows Registry Editor Version 5.00' 
+    $FileExt = '.reg'
     $i = 1
-    
-    if(-not $FileName.EndsWith('.reg'))
+    if(-not $FileName.EndsWith($FileExt))
     {
       $FileName = '{0}.reg' -f $FileName
     } 
-    
-    if(Test-Path -Path $outputPath)
+    if(-not (Test-Path -Path $outputPath))
     {
-      $outputfile = $('{0}\{1}' -f $outputPath, $FileName)
-      # $outputfile = 'PuttySessions-erika-(210924)[26743].reg'
+      New-Item -Path $outputPath -ItemType Directory
     }
-    
-    if(-not (Test-Path -Path $outputfile))
+    $outputPath  = (Get-Item -Path $outputPath).FullName
+    $outputfile = $('{0}\{1}' -f $outputPath, $FileName)
+    if(Test-Path -Path $outputfile)
     {
-      $outputfile = $outputfile.Replace('.reg',('[{0}].reg' -f $i))
+      $outputfile = $outputfile.Replace($FileExt,('({0}).reg' -f $i))
     }
-    
-    while(-not (Test-Path $outputfile))
+    while(Test-Path -Path $outputfile)
     {
-      $match = Select-String -Pattern '([\[]\d+[\]])' -InputObject $outputfile
-      $inc = [int](($match.matches.groups[1].Value).Split('[')).Split(']')[1]+1
-      $outputfile = $outputfile.Replace("[$($inc-1)]","[$inc]")
-      New-Item $outputfile -ItemType File
+      $match = Select-String -Pattern '([\(]\d+[\)])' -InputObject $outputfile
+      $inc = [int](($match.matches.groups[1].Value).Split('(')).Split(')')[1]+1
+      [String]$outputfile = $outputfile.Replace("($($inc-1))","($inc)")
     }
-    
-    New-Item $outputfile -ItemType File -Force
-    $FileRegHeader | Out-File -FilePath $outputfile -Append 
-
+    New-Item -Path $outputfile -ItemType File -Force
     Return $outputfile
   }
   
+  $RegistryFile = (New_RegistryFile -FileName $OutputFileName  -outputPath $OutputFolder).FullName
+  'Windows Registry Editor Version 5.00' | Out-File -FilePath $RegistryFile 
   
-  $RegistryFileName = New_RegistryFile -FileName $RegFile  -outputPath $OutputFolder
-  #Get-Content -Path $PuttyRegBase | Out-File -FilePath $RegistryFileName
-  
-  
-  foreach($switchData in $RegistryFileName)
+  foreach($switchData in $InputFileName)
   {
     $SwitchName = $switchData.'HostName'
     $SwitchIp = $switchData.'ipaddress'
-    
     $PuttyBlurb = (@'
 
 [HKEY_CURRENT_USER\Software\Simontatham\PuTTY\Sessions\{0}]
@@ -326,7 +351,13 @@
 "SSHManualHostKeys"=""
 
 '@ -f $SwitchName, $SwitchIp)
-    
-    $PuttyBlurb | Out-File  $OutputFolder -Append
+    $PuttyBlurb | Out-File -FilePath $RegistryFile -Append 
   } 
 }
+
+
+$PuttySplat = @{
+  OutputFolder = '.\'
+}
+
+New-PuttySessionsRegistryFile @PuttySplat -CreateTemplate
