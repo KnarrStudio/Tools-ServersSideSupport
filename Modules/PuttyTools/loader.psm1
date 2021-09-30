@@ -8,5 +8,10 @@
 
 # LOADING ALL FUNCTION DEFINITIONS:
 
-. $PSScriptRoot\Add-PuttySessions.ps1
+. $PSScriptRoot\Connect-PuTTYSession.ps1
+. $PSScriptRoot\Export-PuTTYSessions.ps1
+. $PSScriptRoot\Import-PuTTYSessions.ps1
+. $PSScriptRoot\New-PuttySessionsRegistryFile.ps1
+. $PSScriptRoot\Set-PuTTYTheme.ps1
 . $PSScriptRoot\Show-PuTTYSessions.ps1
+. $PSScriptRoot\Update-PuTTYSessions.ps1
