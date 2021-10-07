@@ -1,103 +1,4 @@
-﻿Function Show-PuTTYSessions 
-{
-  [CmdletBinding(
-      SupportsShouldProcess,
-      ConfirmImpact = 'Low',
-      DefaultParameterSetName = 'Default'
-  )]
-
-  Param
-  ([Parameter(
-        Position = 0
-    )]
-    [Alias('session')]
-    [ValidateSet('All','User','Built-In')]
-    [string]$SessionType = 'All'
-  )
-  
-  DynamicParam {
-    if ($SessionType -eq 'User') 
-    {
-      $UserSessionAttribute = New-Object -TypeName System.Management.Automation.ParameterAttribute
-      $UserSessionAttribute.Position = 1
-      $UserSessionAttribute.Mandatory = $true
-      $UserSessionAttribute.HelpMessage = 'Enter Session Name'
-      $UserSessionCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
-      $UserSessionCollection.Add($UserSessionAttribute)
-      $UserSession = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter -ArgumentList ('SessionName', [String], $UserSessionCollection)
-      $paramDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-      $paramDictionary.Add('SessionName', $UserSession)
-      return $paramDictionary
-    }
-  }
-  
-  Begin {
-    $session = $PSBoundParameters.SessionName
-    $HkcuPuttyReg = 'HKCU:\Software\Simontatham\PuTTY\Sessions'
-    $PuTTYSessions = Get-ChildItem -Path $HkcuPuttyReg -Name 
-    if($UserSession)
-    {
-      if ($PuTTYSessions -notcontains $session)
-      {
-        Write-Error -Message 'Not a session name.  Try Using the - SessionType "All"' -ErrorAction Stop
-      }
-    }
-    
-    $SessionHash = @{}
-    $NewLength = 0
-    
-  }
-  
-  Process{
-
-    switch ($SessionType)
-    {
-
-      'Built-In' 
-      {
-        $PuTTYSessions  = $PuTTYSessions | Where-Object -FilterScript {
-          $_ -Match 'Default'
-        }
-      }
-      Default 
-      {
-        $PuTTYSessions  = $PuTTYSessions
-      }
-    }
-
-    foreach($session in $PuTTYSessions)
-    {
-      $SessionName = (Get-ItemProperty -Path ('{0}\{1}' -f $HkcuPuttyReg,$session)).PSChildName
-      $HostName = (Get-ItemProperty -Path ('{0}\{1}' -f $HkcuPuttyReg,$session)).HostName
-      
-      if(($HostName -eq $null) -or ($HostName -eq '')){
-        $HostName = 'Blank'
-      }
-      if(($SessionName -eq $null) -or ($SessionName -eq '')){
-        $SessionName = 'Blank'
-      }
-      $SessionHash.add($SessionName,$HostName )
-
-      if($NewLength -lt ($SessionName.Length))
-      {
-        $NewLength = $SessionName.Length
-      }
-    }
-  }
-  
-  End{
-    if($SessionType -ne 'User'){
-      $Padding = $NewLength + 5
-      $SessionHash.keys | ForEach-Object -Process {
-        $message = ("{0,-$Padding}{2}{1}" -f  $_, $SessionHash[$_], ' = ')
-        Write-Output -InputObject $message
-    }}
-    else{
-      Get-ItemProperty -Path ('{0}\{1}' -f $HkcuPuttyReg,$Session)
-    }
-  }
-}
-function Update-PuTTYSessions 
+﻿function Update-PuTTYSessions 
 {
   <#
       .SYNOPSIS
@@ -155,6 +56,146 @@ function Set-PuTTYTheme
   #>
 
 
+}
+
+Function Show-PuTTYSessions #Complete
+{
+  <#
+      .SYNOPSIS
+      A quick list of saved PuTTY sessions
+
+      .DESCRIPTION
+      Searches the registry for all of the PuTTY sessions that you have saved and returns the session name, ip address and log file name and location..
+
+      .PARAMETER NoHeading
+      Removes the heading from the output.
+
+      .EXAMPLE
+      Show-PuTTYSessions
+
+      Session Name         Hostname          Log File Name
+      ============         ========          =============
+      My Firewall          192.168.1.3       C:\temp\putty-&H-&Y&M&D-&T.log
+      Foil                 192.168.0.4       putty.log
+      Switch-Four          192.168.1.4       C:\temp\putty-&H-&Y&M&D-&T.log
+
+      .EXAMPLE
+      Show-PuTTYSessions -NoHeading
+    
+      My Firewall          192.168.1.3       C:\temp\putty-&H-&Y&M&D-&T.log
+      Foil                 192.168.0.4       putty.log
+      Switch-Four          192.168.1.4       C:\temp\putty-&H-&Y&M&D-&T.log
+
+      .LINK
+      URLs to related sites
+      The first link is opened by Get-Help -Online Show-PuTTYSessions
+
+      .INPUTS
+      None.
+
+      .OUTPUTS
+      List to console.
+  #>
+
+
+  [CmdletBinding(
+      SupportsShouldProcess,
+  ConfirmImpact = 'Low')]
+
+  Param
+  (
+    [Parameter(Position = 0)]
+    [Switch]$NoHeading
+  )
+  
+  Begin {
+    
+    $UnderlineHeading = '='
+    $LogFileHeading = 'Log File Name'
+    $HostHeading = 'Hostname'
+    $SessionHeading = 'Session Name'
+    function Show-HashOutput
+    {
+      param
+      (
+        [Parameter(Mandatory, ValueFromPipeline, HelpMessage = 'Data to process')]
+        [Object]$InputObject,
+        [Parameter(Mandatory)]
+        [int]$SessNamePad,
+        [Parameter(Mandatory)]
+        [int]$HostNamePad
+      )
+      process
+      {
+
+        Write-Output -InputObject  (('{0,{0}}{1,{1}}{4}' -f  ($SessNamePad), ($HostNamePad), $InputObject.Key, $InputObject.value['hostname'], $InputObject.value['logfilename']))    
+      }
+    }
+
+    $BlankText = 'Blank'
+    $RegPathFormat = '{0}\{1}'
+    $session = $PSBoundParameters.SessionName
+    $HkcuPuttyReg = 'HKCU:\Software\Simontatham\PuTTY\Sessions'
+    $PuTTYSessions = Get-ChildItem -Path $HkcuPuttyReg -Name 
+    $SessionHash = @{}
+    $SessionObject = [PSCustomObject]@{
+      PSTypeName = 'My.Object'
+    }
+    $null = @{}
+    $SessionNameLength = 0
+    $HostNameLength = 0
+    $i = 0
+  }
+  Process{
+    foreach($session in $PuTTYSessions)
+    {
+      $i++
+      $SessionName = (Get-ItemProperty -Path ($RegPathFormat -f $HkcuPuttyReg, $session)).PSChildName
+      $HostName = (Get-ItemProperty -Path ($RegPathFormat -f $HkcuPuttyReg, $session)).HostName
+      $LogFileName = (Get-ItemProperty -Path ($RegPathFormat -f $HkcuPuttyReg, $session)).LogFileName 
+      if(($HostName -eq $null) -or ($HostName -eq ''))
+      {
+        $HostName = $BlankText+$i
+      }
+      if(($SessionName -eq $null) -or ($SessionName -eq ''))
+      {
+        $SessionName = $BlankText+$i
+      }
+      if(($LogFileName -eq $null) -or ($LogFileName -eq ''))
+      {
+        $LogFileName = $BlankText+$i
+      }
+      $SessionHash.$SessionName = @{}
+      $SessionHash.$SessionName.HostName = $HostName
+      $SessionHash.$SessionName.LogFileName = $LogFileName
+      if($SessionNameLength -lt ($SessionName.Length))
+      {
+        $SessionNameLength = $SessionName.Length
+      }
+      if($HostNameLength -lt ($HostName.Length))
+      {
+        $HostNameLength = $HostName.Length
+      }
+    }
+    $null = $SessionHash | ConvertTo-Json
+    <#    $SessionObject = [PSCustomObject]$SessionHash
+
+        $TypeData = @{
+        TypeName = 'My.Object'
+        DefaultDisplayPropertySet = 'SessionName','Hostname'
+        }
+    Update-TypeData @TypeData#>
+  }
+  End{
+    $SessNamePad = (0-$SessionNameLength -3)
+    $HostNamePad = (-18)
+    if(-not $NoHeading)
+    {
+      Write-Output -InputObject  (('{0,{0}}{1,{1}}{4}' -f  ($SessNamePad), ($HostNamePad), $SessionHeading, $HostHeading, $LogFileHeading))    
+      Write-Output -InputObject  (('{0,{0}}{1,{1}}{4}' -f  ($SessNamePad), ($HostNamePad), $($UnderlineHeading*($SessionHeading).Length), $($UnderlineHeading*($HostHeading).Length), $($UnderlineHeading*($LogFileHeading).Length))    )
+    }
+    $SessionHash.GetEnumerator() | Show-HashOutput -SessNamePad $SessNamePad -HostNamePad $HostNamePad
+  }
 }
 
 function New-PuttySessionsRegistryFile #Complete
@@ -513,6 +554,7 @@ function New-PuttySessionsRegistryFile #Complete
     $PuttyBlurb | Out-File -FilePath $RegistryFile -Append 
   } 
 }
+
 function Import-PuTTYSessions #Completed
 {
   <#
@@ -548,8 +590,9 @@ function Import-PuTTYSessions #Completed
       Import-PuTTYSessions -File Value -LogPath Value
       Imports the PuTTY sessions and sets the putty log location to "Value"
 
-      .NOTES
+       .NOTES
       Often the only module you will need to get your PuTTY operational in your environment.
+      There is an assumption that your data is good and therefore there is no error checking, so Hostname "P@55Word" IP "999.123.000.333" will populate the registry, but obviously not work when called.
 
       .LINK
       URLs to related sites
@@ -560,7 +603,6 @@ function Import-PuTTYSessions #Completed
 
       .OUTPUTS
       Registry keys based on the data in the csv file.
-      Note: There is no error checking, so Hostname "P@55Word" IP "999.123.000.333" will populate the registry, but obviously not work when called.
   #>
 
   [cmdletbinding(DefaultParameterSetName = 'Default')]
@@ -617,6 +659,7 @@ function Import-PuTTYSessions #Completed
     $FileTemplate | Out-File -FilePath $File -Force
     return
   }
+  
   $PuTTYRegHash = @{
     Present                     = @{
       PropertyType = 'dword'
@@ -1527,11 +1570,10 @@ function Export-PuTTYSessions #Completed
   param
   (
     [Parameter(Mandatory = $false,Position = 0)]
-    [string]
-    $SessionName = '*',
-    [string]$outputPath = "$env:HOMEDRIVE\temp\Putty\",
+    [string]$outputPath = (Get-Location).Path,
     [Switch]$Bundle
   )
+  $SessionName = '*'
   function script:New_RegistryFile
   {
     <#
@@ -1573,8 +1615,12 @@ function Export-PuTTYSessions #Completed
     ('[{0}]' -f $item) | Out-File -FilePath $outputfile -Append  # Output session header to file
     Get-ItemProperty -Path ('HKCU:{0}' -f $($item.TrimStart('HKEY_CURRENT_USER'))) | Out-File -FilePath $outputfile  -Append
   }
+  
   $PuttyRegPath = 'HKCU:\Software\Simontatham\PuTTY\Sessions\'
   $PuTTYSessions = ((Get-Item -Path ('{0}{1}' -f $PuttyRegPath, $SessionName)).Name)
+  #$HkcuPuttyReg = 'HKCU:\Software\Simontatham\PuTTY\Sessions'
+  #$PuTTYSessions = Get-ChildItem -Path $HkcuPuttyReg -Name 
+    
   if(-not $Bundle)
   {
     foreach($item in $PuTTYSessions)
@@ -1644,6 +1690,8 @@ function Connect-PuTTYSession #Completed
   $MySession | Start-PuttySession
 
 }
+
+
 
 Export-ModuleMember -Function 'Connect-PuTTYSession','Export-PuTTYSessions','Import-PuTTYSessions','New-PuttySessionsRegistryFile','Set-PuTTYTheme','Show-PuTTYSessions','Update-PuTTYSessions' -Verbose
 
