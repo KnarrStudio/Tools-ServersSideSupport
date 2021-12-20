@@ -1,9 +1,8 @@
-﻿#requires -Modules Microsoft.PowerShell.Utility
-#requires -Version 3.0
-#requires -runasAdministrator
-
-function Get-DFSRQuotaSize
+﻿function Get-DFSRQuotaSize
 {
+  #requires -Modules Microsoft.PowerShell.Utility
+  #requires -Version 3.0
+  #requires -runasAdministrator
   <#
       .SYNOPSIS
       Returns the recomended size of the DFS-R Quota
@@ -42,7 +41,7 @@ function Get-DFSRQuotaSize
   $DateNow = Get-Date -UFormat %Y%m%d-%S
   $LogFile = [String]$($LogFile.Replace('.',('_{0}.' -f $DateNow)))
 
-  $TotalFiles = Get-ChildItem -Path $FullPath -Recurse
+  $TotalFiles = Get-ChildItem -Path $FullPath -Recurse -ErrorAction SilentlyContinue
   $Big32 = $TotalFiles |
   Sort-Object -Property length -Descending |
   Select-Object -First 32 |
@@ -69,9 +68,9 @@ function Get-DFSRQuotaSize
   }
 
   
-  ('The path tested: {0}.' -f $FullPath) | Tee-Object  -FilePath $LogFile
-  ('Of the {0} files reviewed, the 32 largest have a total size of {1:n2}.' -f $($TotalFiles.Length, $($Big32.Sum))) | Tee-Object  -FilePath $LogFile -Append
-  ('Math: ({1:n2} / 1GB) = {0:n4}{2}GB' -f $DfsrQuota, $($Big32.Sum), $NewLine) | Tee-Object -FilePath $LogFile -Append
+  ('{1}The path tested: {0}' -f $FullPath,$NewLine) | Tee-Object  -FilePath $LogFile
+  ('Of the {0} files reviewed, the 32 largest have a total size of {1:n2}' -f $($TotalFiles.Length, $($Big32.Sum))) | Tee-Object  -FilePath $LogFile -Append
+  ('Math: ({1:n2} / 1GB) = {0:n4} GB{2}' -f $DfsrQuota, $($Big32.Sum), $NewLine) | Tee-Object -FilePath $LogFile -Append
   
   $OutputInformation | Tee-Object  -FilePath $LogFile -Append
     
