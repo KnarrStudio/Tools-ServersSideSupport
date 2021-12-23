@@ -1,8 +1,8 @@
 ﻿Function Get-TopProcess
 {
-  param($Count = 10)
+  param([int]$Amount = 10)
 
   Get-Process |
-  Sort-Object -Property CPU -Descending |
-  Microsoft.PowerShell.Utility\Select-Object -First $Count
+  Sort-Object -Property CPU -Descending | 
+  Select-Object -First $Amount
 }
