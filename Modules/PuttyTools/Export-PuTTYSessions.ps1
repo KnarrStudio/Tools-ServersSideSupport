@@ -1,13 +1,13 @@
 ﻿function Export-PuTTYSessions #Completed
 {
-  [CmdletBinding(PositionalBinding = $true)]
+  [CmdletBinding(PositionalBinding = $true,DefaultParameterSetName='Session Set')]
   param
   (
     [Parameter(Position = 0,ParameterSetName = 'Session Set')]
     [string]$SessionName = '*',
     [Parameter(Mandatory = $false,Position = 1,ParameterSetName = 'Session Set')]
     [Parameter(Mandatory = $false,Position = 0,ParameterSetName = 'Bundle Set')]
-    [string]$OutputPath = '.',
+    [string]$OutputPath = (Get-Location).Path,
     [Parameter(Position = 1,ParameterSetName = 'Bundle Set')]
     [Switch]$Bundle
   )
@@ -18,19 +18,11 @@
 
     if(-not (Test-Path -Path $OutputPath))
     {
-      Write-Warning -Message ('OutputPath not found. Save to {0}? ' -f "$env:userprofile\Desktop")
-      if((Read-Host -Prompt 'Y/[N]').ToUpper() -eq 'Y')
-      {
-        $OutputPath = '.'
-      }
-      else
-      {
-        Write-Warning -Message 'Path not found. Create path and run again. '
-        Break
-      }
+      Write-Warning -Message ("The path '{0}' was not found. Create path and run again. " -f $OutputPath)
+      Break
     }
 
-    function New_RegistryFile
+    function script:New_RegistryFile
     {
       <#
           .SYNOPSIS
@@ -55,8 +47,7 @@
       $FileRegHeader | Out-File -FilePath $outputfile -Force
       Return $outputfile
     }
-
-    function Export_SessionToFile
+    function script:Export_SessionToFile
     {
       <#
           .SYNOPSIS
