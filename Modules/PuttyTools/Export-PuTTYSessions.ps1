@@ -5,7 +5,7 @@
     [Parameter(Mandatory = $false,Position = 0)]
     [string]
     $SessionName = '*',
-    [string]$outputPath = "$env:HOMEDRIVE\temp\Putty\",
+    [string]$outputPath = ".\",
     [Switch]$Bundle
   )
   function script:New_RegistryFile
@@ -49,6 +49,7 @@
     ('[{0}]' -f $item) | Out-File -FilePath $outputfile -Append  # Output session header to file
     Get-ItemProperty -Path ('HKCU:{0}' -f $($item.TrimStart('HKEY_CURRENT_USER'))) | Out-File -FilePath $outputfile  -Append
   }
+
   $PuttyRegPath = 'HKCU:\Software\Simontatham\PuTTY\Sessions\'
   $PuTTYSessions = ((Get-Item -Path ('{0}{1}' -f $PuttyRegPath, $SessionName)).Name)
   if(-not $Bundle)
