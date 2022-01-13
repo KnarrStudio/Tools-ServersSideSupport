@@ -1,8 +1,8 @@
 ﻿<#
     Welcome again to Friday Power,
 
-    Getting the data you want. With a little formatting.
-
+    Filtering outputs - Or getting the data you want. 
+    
     When you run a cmdlet to get some output the data isn't always what you need and most often too much information.  So we are going to filter our output 
     to get the information we want.  This example is using the services on our system, but it could be anything
 
@@ -56,7 +56,7 @@ Get-Service | Where-Object{($_.Name -Like 'Ado*') -and ($_.StartType -eq 'Automa
 ############################################
 
 # Importance of order.  When sending something to a pipe the order is important. The next three commands, have the same commands, but in different orders 
-# They all get the list of services first, but then they do different things in different orders causing the output to be just a little differnent.
+# They all get the list of services first, but then they do different things in different orders causing the output to be just a little different.
 
 
 # Get the list of services and sort on DisplayName. Take that list and select only ones that have Dependent services.  Lastly, select the first five in the list.  
