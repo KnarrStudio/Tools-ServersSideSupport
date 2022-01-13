@@ -1,26 +1,13 @@
 ﻿<#
-
-Today we are going to use BOTH PowerShell (console) and PowerShell (ISE), so open both
-
-Copy the everything in this email between the #Start ---- AND #End ----
-
-    Paste it into PowerShell ISE
-
-    ISE Tricks:
-    1. Select any piece of code and press F8 to run it. Multiple lines or even in the comment section
-       Example: Select the following: Get-Date
-    2. Place your cursor on a line and press F8 to run the whole line 
-#>
-
-#Start -------------------------------------------- 
-<#
     Welcome again to Friday Power,
 
-    Today we are going to figure out how to get the output data you want with a little formating.
+    Getting the data you want. With a little formatting.
 
-    You run a script or cmdlet to get some output. The problem it may not give you what you want. 
-    So we are going to look as some ways to get more data and diffent ways to look at it.
-    
+    When you run a cmdlet to get some output the data isn't always what you need and most often too much information.  So we are going to filter our output 
+    to get the information we want.  This example is using the services on our system, but it could be anything
+
+    And we are going to show how changing the order can affect the output.
+     
 #>  
 
 # Let's start with the simple default.
@@ -30,54 +17,47 @@ Get-Service
 # That worked, but let's get just the first five.
 Get-Service | select -First 5
 
-# Now with dependent services. 
-Get-Service | Where DependentServices -NE $null
+# Now with all of the properties
+Get-Service | Select -Property * -First 5
 
-# Where did I get "DependentServices"?  From the Get-Member command the alias 'gm'
-Get-Service | gm
+# Change the list to a table 
+Get-Service | Select -Property * -First 5 | Format-Table
 
+# Now with ONLY dependent services or Not "Win32OwnProcess". 
+Get-Service | Where DependentServices -NE $null | Select -Property * -First 5 | Format-Table
+Get-Service | Where-Object ServiceType -NE 'Win32OwnProcess' | Select-Object -Property * -First 5 | Format-Table
+
+<# 
+# Where did I get "ServiceType"?  From the Get-Member command the alias 'gm'
 # The Get-Member command shows you all sorts of good information about the piped command
-<#
-A Method - is sort of an action word
-A Property - is like a setting
+    Method - is sort of an action word
+    Property - is like a setting
 #>
-# So if we wanted collect only the Services that are stopped we need to find the Property that gives that information.
-# An easy way to do that is to return all of the properties
-Get-Service | select -Property * | select -First 5
-
-#OR Guess
-
-(Get-Service).Site
-(Get-Service).StartType
-(Get-Service).Status 
+Get-Service | gm 
 
 # Now we can see that "Status" will give the current state
 Get-Service | Where Status -EQ 'Stopped'
 
-#Again, Not real helpful.  Should they be stopped and do we need the "Stopped" column?
-Get-Service | Where-Object Status -EQ 'Stopped' | Select StartType,Name,DisplayName,ServicesDependedOn
+#Again, Not real helpful.  Should they be stopped? And do we need the "Stopped" column?
+Get-Service | Where-Object Status -EQ 'Stopped' | Select StartType,Name,DisplayName
 
-#Again, helpful information, but should they be stopped and do we need the "Stopped" and "DisplayName" columns?
-# Up until this time I have been using an "Alias" for the "Where" and "Select" statements.  I am going to expand them in this example
+#Again, helpful information, but they are only the ones that are stopped, so do we need the "Stopped" and "DisplayName" columns?
+# Up until this time I have been using an "Alias" for the "Where" and "Select" statements.  I am going to expand them in this example to "Where-Object" and "Select-Object"
 # I am also going to add a little more code and then explain
-Get-Service | Where-Object{($_.Status -EQ 'Stopped') -and ($_.StartType -eq 'Automatic')} | Select-Object StartType,Name,@{Label = "Depended On" ; Expression = {$_.ServicesDependedOn}}
-
+Get-Service | Where-Object{($_.Name -Like 'Ado*') -and ($_.StartType -eq 'Automatic')} | Select-Object StartType,Name,@{Label = "Depended On" ; Expression = {$_.ServicesDependedOn}}
 <#
-Get-Service - Default cmdlet
-Where-Object{  } - This is where we filter the information we are looking for.  Information from the pipe is sent using "$_" variable
-($_.Status -EQ 'Stopped') -and ($_.StartType -eq 'Automatic') - We want to find the ("Services.Status" the equal 'Stopped') AND (Services.StartType that equal 'Automatic')
-Select-Object - The items that we want sent to the output.
-@{Label = "Depended On" ; Expression = {$_.ServicesDependedOn}} - This allows us to change the name of our output column from "ServicesDependedOn" to "Depended On"
+- Get-Service - Default cmdlet
+- Where-Object{  } - This is where we filter the information we are looking for.  Information from the pipe is sent using "$_" variable
+- ($_.Name -Like 'Ado*') -and ($_.StartType -eq 'Automatic') - We want to find the ("Services.Name" that is like 'Ado*') AND (Services.StartType that equal 'Automatic')
+- Select-Object - The items that we want sent to the output.
+- @{Label = "Depended On" ; Expression = {$_.ServicesDependedOn}} - This allows us to change the name of our output column from "ServicesDependedOn" to "Depended On"
 #>
 
+############################################
 
+# Importance of order.  When sending something to a pipe the order is important. The next three commands, have the same commands, but in different orders 
+# They all get the list of services first, but then they do different things in different orders causing the output to be just a little differnent.
 
-# Okay we are going to start combining things.
-# What I want to show is the importance of order command.  When sending something to a pipe the order is important.  
-# They all get the list of services first, but then they do different things in different orders.
-
-
-# The next three commands, have the same commands, but in different orders
 
 # Get the list of services and sort on DisplayName. Take that list and select only ones that have Dependent services.  Lastly, select the first five in the list.  
 Get-Service | sort DisplayName | Where DependentServices -NE $null | select -First 5
@@ -93,17 +73,7 @@ Get-Service | select -First 5 | sort DisplayName | Where DependentServices -NE $
 # Let's do it again, but show the dependent services in the output
 Get-Service | Where DependentServices -NE $null | Select -First 5 | Select Name,Status,DependentServices
 #{________}   {_______________________________}  {_______________}  {__________________________________}
-#  Main Cmdlet    Where Statement                    select amount        Select what you want to capture
+#  Main Cmdlet    Where-Object Statement         select amount       Select what you want to capture
 
 
-# All these work at getting information to output, and does output it, but we are not in control of the output
-# Let's look at Get-Aduser (You may have to: Import-Module ActiveDirectory)
-Get-Aduser 
 
-# That is a lot of users, and it is in a List view, which is tough to read.  
-# So let's use some of the tricks from above
-
-Get-Printer | Where Name -Like 'Micro*' | Select -First 10 
-
-
-Get-Service | Where-Object{($_.Status -EQ 'Stopped') -and ($_.StartType -eq 'Automatic')} | Select-Object StartType,Name,@{Label = "Depended On" ; Expression = {$_.ServicesDependedOn}}
