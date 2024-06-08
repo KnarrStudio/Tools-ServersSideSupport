@@ -1,4 +1,5 @@
-function Copy-PuTTYsessionColour{
+function Copy-PuTTYsessionColour #Completed 
+{
   <#
     .SYNOPSIS
     Copies the colors of one session to one or many others.
