@@ -1,65 +1,6 @@
- 
-$InputFile = ('{0}\temp\Putty\Input.csv' -f $env:HOMEDRIVE)
-$ItemCount = 100
-$ThemeSelection = $null
-
-$RgbColor = @{
-  'Black' = '0,0,0'
-  'Blue' = '0,0,255'
-  'Green' = '0,255,0'
-  'Red'  = '255,0,0'
-  'Yellow' = '255,255,0'
-  'Gray' = '85,85,85'
-  'White' = '255,255,255'
-}
-
-$ThemeHash = @{
-  Saroja  = @{
-    TxtColor       = '0,255,255'
-    BkColor        = '255,0,255'
-    CrsrColor      = '255,0,0'
-    ThemeSelection = 'Saroja'
-  }
-  Lonnie  = @{
-    TxtColor       = '0,255,255'
-    BkColor        = '255,0,255-lonnie'
-    CrsrColor      = '255,0,0'
-    ThemeSelection = 'Lonnie'
-  }
-  Default = @{
-    TxtColor       = $RgbColor.Gray
-    BkColor        = $RgbColor.Black
-    CrsrColor      = $RgbColor.Gray
-    ThemeSelection = 'Default'
-  }
-  SIPR    = @{
-    TxtColor       = $RgbColor.Gray
-    BkColor        = $RgbColor.Black
-    CrsrColor      = $RgbColor.Red
-    ThemeSelection = 'SIPR'
-  }
-  NIPR    = @{
-    TxtColor       = $RgbColor.Gray
-    BkColor        = $RgbColor.Black
-    CrsrColor      = $RgbColor.Green
-    ThemeSelection = 'NIPR'
-  }
-}
-
-$MenuItems = ($ThemeHash.GetEnumerator() | ForEach-Object -Process {
-    $_.Key
-})
-
-$MenuSplat = @{
-  Title     = 'Putty Theme and Reg File Builder'
-  MenuItems = $MenuItems
-}
-
-$PuttyConfigSplat = @{
-}
-
-function Show-AsciiMenu {
-  <#
+﻿  function Script:Show_AsciiMenu 
+  {
+    <#
       .SYNOPSIS
       Describe purpose of "Show-AsciiMenu" in 1-2 sentences.
 
@@ -97,30 +38,29 @@ function Show-AsciiMenu {
 
       .OUTPUTS
       List of output types produced by this function.
-  #>
-  [CmdletBinding()]
-  param
-  (
+    #>
+    [CmdletBinding()]
+    param
+    (
     [string]$Title = 'Title',
-
     [String[]]$MenuItems = 'None',
-
     [string]$TitleColor = 'Red',
-
     [string]$LineColor = 'Yellow',
-
-    [string]$MenuItemColor = 'Cyan'
-  )
-  Begin {
+    [string]$MenuItemColor = 'Cyan',
+    [Switch]$NoItemCount
+    )
+    Begin {
     # Set Variables
     $i = 1
     $Tab = "`t"
     $VertLine = '║'
     $Script:ItemCount = $MenuItems.Count
-
-  
     function Write-HorizontalLine
     {
+      <#
+          .SYNOPSIS
+          Internal function to write Horizontal Line for menu
+      #>
       param
       (
         [Parameter(Position = 0)]
@@ -144,18 +84,26 @@ function Show-AsciiMenu {
     }
     function Get-Padding
     {
+      <#
+          .SYNOPSIS
+          Internal function to calculate spacing
+      #>
       param
       (
-        [Parameter(Mandatory, Position = 0)]
+        [Parameter(Mandatory,HelpMessage='Number of times to multiply. Most often as String.length()', Position = 0)]
         [int]$Multiplier 
       )
       "`0"*$Multiplier
     }
     function Write-MenuTitle
     {
+      <#
+          .SYNOPSIS
+          Internal function to write menu title
+      #>    
       Write-Host -Object ('{0}{1}' -f $VertLine, $TextPadding) -NoNewline -ForegroundColor $LineColor
       Write-Host -Object ($Title) -NoNewline -ForegroundColor $TitleColor
-      if($TotalTitlePadding % 2 -eq 1)
+      if(($TotalTitlePadding % 2) -eq 1)
       {
         $TextPadding = Get-Padding -Multiplier ($TitlePaddingCount + 1)
       }
@@ -163,6 +111,10 @@ function Show-AsciiMenu {
     }
     function Write-MenuItems
     {
+      <#
+          .SYNOPSIS
+          Internal function to write menu items
+      #>
       foreach($menuItem in $MenuItems)
       {
         $number = $i++
@@ -173,13 +125,11 @@ function Show-AsciiMenu {
         Write-Host -Object $VertLine -ForegroundColor $LineColor
       }
     }
-  }
-
-  Process {
+    }
+    Process {
     $TitleCount = $Title.Length
     $LongestMenuItemCount = ($MenuItems | Measure-Object -Maximum -Property Length).Maximum
     Write-Debug -Message ('LongestMenuItemCount = {0}' -f $LongestMenuItemCount)
-
     if  ($TitleCount -gt $LongestMenuItemCount)
     {
       $ItemWidthCount = $TitleCount
@@ -188,7 +138,6 @@ function Show-AsciiMenu {
     {
       $ItemWidthCount = $LongestMenuItemCount
     }
-
     if($ItemWidthCount % 2 -eq 1)
     {
       $ItemWidth = $ItemWidthCount + 1
@@ -198,112 +147,24 @@ function Show-AsciiMenu {
       $ItemWidth = $ItemWidthCount
     }
     Write-Debug -Message ('Item Width = {0}' -f $ItemWidth)
-   
     $TotalLineWidth = $ItemWidth + 10
     Write-Debug -Message ('Total Line Width = {0}' -f $TotalLineWidth)
-  
     $TotalTitlePadding = $TotalLineWidth - $TitleCount
     Write-Debug -Message ('Total Title Padding  = {0}' -f $TotalTitlePadding)
-  
     $TitlePaddingCount = [math]::Floor($TotalTitlePadding / 2)
     Write-Debug -Message ('Title Padding Count = {0}' -f $TitlePaddingCount)
-
     $HorizontalLine = '═'*$TotalLineWidth
     $TextPadding = Get-Padding -Multiplier $TitlePaddingCount
     Write-Debug -Message ('Text Padding Count = {0}' -f $TextPadding.Length)
-
-
     Write-HorizontalLine -DrawLine Top
     Write-MenuTitle
     Write-HorizontalLine -DrawLine Middle
     Write-MenuItems
     Write-HorizontalLine -DrawLine Bottom
-  }
-
-  End {
-
-  }
-}
-
-function New-PuttyConfig {
-  [cmdletbinding(DefaultParameterSetName = 'Default')]
-  param
-  (
-    [Parameter(Mandatory, Position = 0,ParameterSetName = 'Default')]
-    [Parameter(Mandatory, Position = 0,ParameterSetName = 'Template')]
-    [ValidateScript({
-          If($_ -match '.csv')
-          {
-            $true
-          }
-          Else
-          {
-            Throw 'Input file needs to be CSV formatted with "HostName" , "IPAddress"'
-          }
-    })][String]$File,
-    [Parameter(Mandatory = $false, Position = 1,ParameterSetName = 'Default')]
-    [string]$PuttyTheme = 'Default',
-    [Parameter(Mandatory = $false, Position = 2,ParameterSetName = 'Default')]
-    [string]$TxtColor = 'Default',
-    [Parameter(Mandatory = $false, Position = 3,ParameterSetName = 'Default')]
-    [string]$BkColor = 'Default',
-    [Parameter(Mandatory = $false, Position = 4,ParameterSetName = 'Default')]
-    [string]$CurserColor = 'Default',
-    [Parameter(Mandatory = $false, Position = 1,ParameterSetName = 'Template')]
-    [Switch]$CreateTemplate
-    
-  )
-
-  if($CreateTemplate)
-  {
-    '"HostName","IPAddress"' | Out-File -FilePath $File -Force
-    return
-  }
-}
-
-
-Show-AsciiMenu @MenuSplat
-Do {
-  $ThemeSelection = Read-Host -Prompt 'Select Number'
-  [String]$PuttyThemeSelection = $MenuItems[$ThemeSelection-1]
-} Until($ThemeSelection -le $ItemCount)
-
-
-
-Write-Host ('Theme Selected: {0}' -f $PuttyThemeSelection)
-
-$TextColorRGB = $ThemeHash.$PuttyThemeSelection.TxtColor
-$BackgroundColorRGB = $ThemeHash.$PuttyThemeSelection.BkColor
-$CurserColorRGB = $ThemeHash.$PuttyThemeSelection.CrsrColor  
-$TextColorRGB
-$BackgroundColorRGB
-$CurserColorRGB 
-
-
-
-$NewPuttyConfigSplat = @{
-  File        = $InputFile
-  TxtColor    = $TextColorRGB
-  BkColor     = $BackgroundColorRGB
-  CurserColor = $CurserColorRGB
-}
-
-New-PuttyConfig @NewPuttyConfigSplat
-
-
-
-$WriteProgress = {
-  $Activities = @('x', 'Building Theme', 'Varifing Theme', 'Importing File', 'Parsing Information', 'Merging Data', 'Building Config', 'Saving File' )
-  $ActivityCount = $Activities.Count
-  for ($i = 1; $i -lt $ActivityCount; $i++)
-  {
-    $ActivityProgress = @{
-      Activity        = $Activities[$i]
-      PercentComplete = (($i*100)/$ActivityCount)
-      Status          = ('{0} %' -f (([math]::Round((($i)/$ActivityCount * 100),0))))
     }
-    Write-Progress @ActivityProgress
-    Start-Sleep -Milliseconds 300
-  }
-}
-       
+    End {
+    if(-not $NoItemCount){
+      Return $ItemCount
+      }
+    }
+    }
